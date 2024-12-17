@@ -3,6 +3,6 @@ package io.hhplus.tdd.point;
 import lombok.Getter;
 
 @Getter
-public class PointUpdateDto {
+public class PointUpdateRequest {
     private Long amount;
 }
