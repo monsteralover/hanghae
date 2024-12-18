@@ -2,11 +2,13 @@ package io.hhplus.tdd.point;
 
 import io.hhplus.tdd.database.PointHistoryTable;
 import io.hhplus.tdd.database.UserPointTable;
+import io.hhplus.tdd.exception.PointInsufficientException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.mockito.Mockito.*;
 
 class PointServiceTest {
@@ -17,6 +19,7 @@ class PointServiceTest {
     private final long USER_ID = 13L;
     private final long INITIAL_POINT = 100L;
     private final long UPDATE_MILLIS = System.currentTimeMillis();
+
     private UserPoint initialUserPoint;
 
     @BeforeEach
@@ -87,5 +90,39 @@ class PointServiceTest {
                 expectedUserPoint.updateMillis()
         );
     }
+
+    @DisplayName("포인트를 사용하면 사용한 만큼 포인트가 감소한다.")
+    @Test
+    void decreasePointAfterUse() {
+        // given
+        long useAmount = 50L;
+        long expectedBalance = INITIAL_POINT - useAmount;
+        UserPoint expectedUserPoint = new UserPoint(USER_ID, expectedBalance, UPDATE_MILLIS);
+
+        when(userPointTable.insertOrUpdate(USER_ID, expectedBalance))
+                .thenReturn(expectedUserPoint);
+
+        // when
+        UserPoint result = pointService.usePoint(USER_ID, useAmount);
+
+        // then
+        assertThat(result.point()).isEqualTo(expectedBalance);
+        verify(userPointTable).insertOrUpdate(USER_ID, expectedBalance);
+        verify(pointHistoryTable).insert(USER_ID, useAmount, TransactionType.USE, UPDATE_MILLIS);
+    }
+
+    @DisplayName("포인트 사용 시 잔고가 부족하면 포인트 사용은 실패하고 예외가 발생한다.")
+    @Test
+    void usePointOutOfBalance() {
+
+        long useAmount = 200L;
+
+        Throwable throwable = catchThrowable(() -> pointService.usePoint(USER_ID, useAmount));
+
+        assertThat(throwable)
+                .isInstanceOf(PointInsufficientException.class)
+                .hasMessageContaining("포인트가 부족합니다.");
+    }
+
 
 }

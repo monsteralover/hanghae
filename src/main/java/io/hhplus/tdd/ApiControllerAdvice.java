@@ -1,5 +1,7 @@
 package io.hhplus.tdd;
 
+import io.hhplus.tdd.exception.ErrorResponse;
+import io.hhplus.tdd.exception.PointInsufficientException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -10,5 +12,10 @@ class ApiControllerAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
         return ResponseEntity.status(500).body(new ErrorResponse("500", "에러가 발생했습니다."));
+    }
+
+    @ExceptionHandler(PointInsufficientException.class)
+    public ResponseEntity<ErrorResponse> handlePointInsufficientException(PointInsufficientException e) {
+        return ResponseEntity.status(422).body(new ErrorResponse("422", e.getMessage()));
     }
 }
