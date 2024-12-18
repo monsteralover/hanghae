@@ -114,7 +114,6 @@ class PointServiceTest {
     @DisplayName("포인트 사용 시 잔고가 부족하면 포인트 사용은 실패하고 예외가 발생한다.")
     @Test
     void usePointOutOfBalance() {
-
         long useAmount = 200L;
 
         Throwable throwable = catchThrowable(() -> pointService.usePoint(USER_ID, useAmount));
@@ -124,5 +123,20 @@ class PointServiceTest {
                 .hasMessageContaining("포인트가 부족합니다.");
     }
 
+    @DisplayName("포인트를 조회한다.")
+    @Test
+    void getPoint() {
+        // given
+        final UserPoint expectedUserPoint = new UserPoint(USER_ID, INITIAL_POINT, UPDATE_MILLIS);
+        when(userPointTable.insertOrUpdate(USER_ID, INITIAL_POINT)).thenReturn(expectedUserPoint);
+        when(userPointTable.selectById(USER_ID))
+                .thenReturn(expectedUserPoint);
+        // when
+        UserPoint userPoint = pointService.getPoint(USER_ID);
+
+        // then
+        assertThat(userPoint.point()).isEqualTo(INITIAL_POINT);
+        verify(userPointTable).selectById(USER_ID);
+    }
 
 }
