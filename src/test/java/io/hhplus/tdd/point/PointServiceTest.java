@@ -27,8 +27,6 @@ class PointServiceTest {
         userPointTable = mock(UserPointTable.class);
         pointHistoryTable = mock(PointHistoryTable.class);
         pointService = new PointService(userPointTable, pointHistoryTable);
-        initialUserPoint = new UserPoint(USER_ID, INITIAL_POINT, UPDATE_MILLIS);
-        when(userPointTable.selectById(USER_ID)).thenReturn(initialUserPoint);
     }
 
     @Test
@@ -97,8 +95,10 @@ class PointServiceTest {
         // given
         long useAmount = 50L;
         long expectedBalance = INITIAL_POINT - useAmount;
+        initialUserPoint = new UserPoint(USER_ID, INITIAL_POINT, UPDATE_MILLIS);
         UserPoint expectedUserPoint = new UserPoint(USER_ID, expectedBalance, UPDATE_MILLIS);
 
+        when(userPointTable.selectById(USER_ID)).thenReturn(initialUserPoint);
         when(userPointTable.insertOrUpdate(USER_ID, expectedBalance))
                 .thenReturn(expectedUserPoint);
 
@@ -115,6 +115,8 @@ class PointServiceTest {
     @Test
     void usePointOutOfBalance() {
         long useAmount = 200L;
+        initialUserPoint = new UserPoint(USER_ID, INITIAL_POINT, UPDATE_MILLIS);
+        when(userPointTable.selectById(USER_ID)).thenReturn(initialUserPoint);
 
         Throwable throwable = catchThrowable(() -> pointService.usePoint(USER_ID, useAmount));
 
