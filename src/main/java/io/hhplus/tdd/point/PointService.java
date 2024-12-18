@@ -6,6 +6,8 @@ import io.hhplus.tdd.exception.PointInsufficientException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class PointService {
@@ -33,5 +35,9 @@ public class PointService {
 
     public UserPoint getPoint(final long user_id) {
         return userPointTable.selectById(user_id);
+    }
+
+    public List<PointHistory> getPointHistories(final long user_id) {
+        return pointHistoryTable.selectAllByUserId(user_id);
     }
 }

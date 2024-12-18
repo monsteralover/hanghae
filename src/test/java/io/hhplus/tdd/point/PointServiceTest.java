@@ -7,6 +7,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+import java.util.List;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.mockito.Mockito.*;
@@ -130,15 +133,36 @@ class PointServiceTest {
     void getPoint() {
         // given
         final UserPoint expectedUserPoint = new UserPoint(USER_ID, INITIAL_POINT, UPDATE_MILLIS);
-        when(userPointTable.insertOrUpdate(USER_ID, INITIAL_POINT)).thenReturn(expectedUserPoint);
         when(userPointTable.selectById(USER_ID))
                 .thenReturn(expectedUserPoint);
         // when
-        UserPoint userPoint = pointService.getPoint(USER_ID);
+        final UserPoint userPoint = pointService.getPoint(USER_ID);
 
         // then
         assertThat(userPoint.point()).isEqualTo(INITIAL_POINT);
         verify(userPointTable).selectById(USER_ID);
+    }
+
+    @DisplayName("포인트 내역을 조회한다.")
+    @Test
+    void getPointHistory() {
+        // given
+        final PointHistory chargeHistory = createPointHistory(1L, 500L, TransactionType.CHARGE);
+        final PointHistory useHistory = createPointHistory(2L, 300L, TransactionType.USE);
+        List<PointHistory> expectedHistories = Arrays.asList(chargeHistory, useHistory);
+
+        when(pointHistoryTable.selectAllByUserId(USER_ID)).thenReturn(Arrays.asList(chargeHistory, useHistory));
+
+        // when
+        List<PointHistory> actualHistories = pointService.getPointHistories(USER_ID);
+
+        // then
+        assertThat(actualHistories).isEqualTo(expectedHistories);
+        verify(pointHistoryTable).selectAllByUserId(USER_ID);
+    }
+
+    private PointHistory createPointHistory(long id, long amount, TransactionType type) {
+        return new PointHistory(id, USER_ID, amount, type, System.currentTimeMillis());
     }
 
 }
