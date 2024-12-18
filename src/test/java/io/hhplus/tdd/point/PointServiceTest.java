@@ -40,8 +40,10 @@ class PointServiceTest {
         long chargeAmount = 100L;
         final long beforeTestTime = System.currentTimeMillis();
 
-        UserPoint expectedUserPoint = new UserPoint(USER_ID, chargeAmount, System.currentTimeMillis());
-        when(userPointTable.insertOrUpdate(USER_ID, chargeAmount)).thenReturn(expectedUserPoint);
+        UserPoint expectedUserPoint = new UserPoint(USER_ID, INITIAL_POINT + chargeAmount, System.currentTimeMillis());
+        initialUserPoint = new UserPoint(USER_ID, INITIAL_POINT, System.currentTimeMillis());
+        when(userPointTable.selectById(USER_ID)).thenReturn(initialUserPoint);
+        when(userPointTable.insertOrUpdate(USER_ID, INITIAL_POINT + chargeAmount)).thenReturn(expectedUserPoint);
 
         PointHistory expectedPointHistory = new PointHistory(
                 pointHistoryId,
@@ -66,7 +68,7 @@ class PointServiceTest {
         assertThat(userPoint)
                 .satisfies(point -> {
                     assertThat(point.id()).isEqualTo(USER_ID);
-                    assertThat(point.point()).isEqualTo(chargeAmount);
+                    assertThat(point.point()).isEqualTo(INITIAL_POINT + chargeAmount);
                     assertThat(point.updateMillis())
                             .isGreaterThanOrEqualTo(beforeTestTime)
                             .isLessThanOrEqualTo(afterTestTime);
@@ -83,7 +85,8 @@ class PointServiceTest {
                 });
 
         // 메소드 호출 검증
-        verify(userPointTable).insertOrUpdate(USER_ID, chargeAmount);
+        verify(userPointTable).selectById(USER_ID);
+        verify(userPointTable).insertOrUpdate(USER_ID, INITIAL_POINT + chargeAmount);
         verify(pointHistoryTable).insert(
                 USER_ID,
                 chargeAmount,
@@ -114,9 +117,9 @@ class PointServiceTest {
         verify(pointHistoryTable).insert(USER_ID, useAmount, TransactionType.USE, UPDATE_MILLIS);
     }
 
-    @DisplayName("포인트 사용 시 잔고가 부족하면 포인트 사용은 실패하고 예외가 발생한다.")
+    @DisplayName("포인트 사용 시 잔고가 부족하면 포인트 사용은 실패하고 PointInsufficientException 예외가 발생한다.")
     @Test
-    void usePointOutOfBalance() {
+    void throwExceptionPointOutOfBalance() {
         long useAmount = 200L;
         initialUserPoint = new UserPoint(USER_ID, INITIAL_POINT, UPDATE_MILLIS);
         when(userPointTable.selectById(USER_ID)).thenReturn(initialUserPoint);

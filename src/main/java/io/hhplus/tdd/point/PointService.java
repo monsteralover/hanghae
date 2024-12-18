@@ -15,7 +15,9 @@ public class PointService {
     private final PointHistoryTable pointHistoryTable;
 
     public UserPoint chargePoint(Long userId, Long amount) {
-        final UserPoint userPoint = userPointTable.insertOrUpdate(userId, amount);
+        final UserPoint selectedUserPoint = userPointTable.selectById(userId);
+        final long resultPoint = selectedUserPoint.point() + amount;
+        final UserPoint userPoint = userPointTable.insertOrUpdate(userId, resultPoint);
         pointHistoryTable.insert(userId, amount, TransactionType.CHARGE, userPoint.updateMillis());
         return userPoint;
     }
