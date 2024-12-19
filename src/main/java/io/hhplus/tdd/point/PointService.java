@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -14,12 +15,17 @@ public class PointService {
     private final UserPointTable userPointTable;
     private final PointHistoryTable pointHistoryTable;
 
-    public UserPoint chargePoint(Long userId, Long amount) {
-        final UserPoint selectedUserPoint = userPointTable.selectById(userId);
-        final long resultPoint = selectedUserPoint.point() + amount;
-        final UserPoint userPoint = userPointTable.insertOrUpdate(userId, resultPoint);
-        pointHistoryTable.insert(userId, amount, TransactionType.CHARGE, userPoint.updateMillis());
-        return userPoint;
+    private final ConcurrentHashMap<Long, Object> locks = new ConcurrentHashMap<>();
+
+    public synchronized UserPoint chargePoint(Long userId, Long amount) {
+        Object lock = locks.computeIfAbsent(userId, k -> new Object());
+        synchronized (lock) {
+            final UserPoint selectedUserPoint = userPointTable.selectById(userId);
+            final long resultPoint = selectedUserPoint.point() + amount;
+            final UserPoint userPoint = userPointTable.insertOrUpdate(userId, resultPoint);
+            pointHistoryTable.insert(userId, amount, TransactionType.CHARGE, userPoint.updateMillis());
+            return userPoint;
+        }
     }
 
     public UserPoint usePoint(final long userId, final long amount) {
@@ -42,4 +48,5 @@ public class PointService {
     public List<PointHistory> getPointHistories(final long user_id) {
         return pointHistoryTable.selectAllByUserId(user_id);
     }
+
 }
