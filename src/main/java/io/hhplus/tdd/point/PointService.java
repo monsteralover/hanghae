@@ -2,6 +2,7 @@ package io.hhplus.tdd.point;
 
 import io.hhplus.tdd.database.PointHistoryTable;
 import io.hhplus.tdd.database.UserPointTable;
+import io.hhplus.tdd.exception.MaxPointReachedException;
 import io.hhplus.tdd.exception.PointInsufficientException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PointService {
     private final UserPointTable userPointTable;
     private final PointHistoryTable pointHistoryTable;
+    private final Long MAX_POINT = 100000000L;
 
     private final ConcurrentHashMap<Long, Object> locks = new ConcurrentHashMap<>();
 
@@ -22,6 +24,9 @@ public class PointService {
         synchronized (lock) {
             final UserPoint selectedUserPoint = userPointTable.selectById(userId);
             final long resultPoint = selectedUserPoint.point() + amount;
+            if (resultPoint > MAX_POINT) {
+                throw new MaxPointReachedException("최대 포인트 충전량이 초과됩니다.");
+            }
             final UserPoint userPoint = userPointTable.insertOrUpdate(userId, resultPoint);
             pointHistoryTable.insert(userId, amount, TransactionType.CHARGE, userPoint.updateMillis());
             return userPoint;
