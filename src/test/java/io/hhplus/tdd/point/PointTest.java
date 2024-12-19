@@ -51,21 +51,28 @@ class PointTest {
         // Then
         UserPoint resultPoint = pointService.getPoint(userId);
         assertEquals(chargeAmount * threadCount, resultPoint.point());
+
+        emptyUserPoint(userId, resultPoint.point());
     }
 
     @DisplayName("동시성 환경에서 2명이 10개의 쓰레드를 통해 충전을 했을 때 빠지는 금액 없이 충전이 완료된다.")
     @Test
     void testConcurrentChargePointMultipleUsers() throws InterruptedException {
         // given
-        final List<Map<Long, Long>> userChargeData = IntStream.range(0, 5)
+        final long firstUserId = 1L;
+        final long secondUserId = 2L;
+        final int chargeTimes = 5;
+        final long firstUserChargeAmount = 100L;
+        final long secondUserChargeAmount = 200L;
+        final List<Map<Long, Long>> userChargeData = IntStream.range(0, chargeTimes)
                 .boxed()
                 .flatMap(i -> Stream.of(
-                        Map.of(1L, 100L), Map.of(2L, 200L)
+                        Map.of(firstUserId, firstUserChargeAmount), Map.of(secondUserId, secondUserChargeAmount)
                 )).toList();
 
         int threadCount = userChargeData.size();
 
-
+        //when
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
 
@@ -86,10 +93,17 @@ class PointTest {
         executorService.shutdown();
 
         // Then
-        UserPoint firstUserPoint = pointService.getPoint(1L);
-        UserPoint secondUserPoint = pointService.getPoint(2L);
-        assertEquals(firstUserPoint.point(), 500L);
-        assertEquals(secondUserPoint.point(), 1000L);
+        UserPoint firstUserPoint = pointService.getPoint(firstUserId);
+        UserPoint secondUserPoint = pointService.getPoint(secondUserId);
+        assertEquals(firstUserPoint.point(), chargeTimes * firstUserChargeAmount);
+        assertEquals(secondUserPoint.point(), chargeTimes * secondUserChargeAmount);
+
+        emptyUserPoint(firstUserId, firstUserPoint.point());
+        emptyUserPoint(secondUserId, secondUserPoint.point());
+    }
+
+    private void emptyUserPoint(Long userId, Long remainingPoint) {
+        pointService.usePoint(userId, remainingPoint);
     }
 
 }
