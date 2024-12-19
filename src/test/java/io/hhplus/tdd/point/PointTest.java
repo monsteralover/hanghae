@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -105,8 +107,8 @@ class PointTest {
     @DisplayName("동시성 환경에서 2명이 10개의 쓰레드를 통해 포인트를 사용했을 때 누락 없이 사용이 완료된다.")
     @Test
     void testConcurrentUsePointMultipleUsers() throws InterruptedException {
-        final long firstUserId = 1L;
-        final long secondUserId = 2L;
+        final long firstUserId = 3L;
+        final long secondUserId = 4L;
         final int consumeTimes = 5;
         final long firstUserUseAmount = 100L;
         final long secondUserUseAmount = 200L;
@@ -147,6 +149,59 @@ class PointTest {
         UserPoint secondUserPoint = pointService.getPoint(secondUserId);
         assertEquals(firstUserPoint.point(), 700L - (firstUserUseAmount * consumeTimes));
         assertEquals(secondUserPoint.point(), 1500L - (secondUserUseAmount * consumeTimes));
+
+        emptyUserPoint(firstUserId, firstUserPoint.point());
+        emptyUserPoint(secondUserId, secondUserPoint.point());
+    }
+
+    @DisplayName("동시성 환경에서 2명이 12개의 쓰레드를 통해 포인트를 사용, 충전했을 때 누락 없이 내역이 반영된다")
+    @Test
+    void testConcurrentChargeAndUsePointMultipleUsers() throws InterruptedException {
+        // given
+        final long firstUserId = 5L;
+        final long secondUserId = 6L;
+
+        final long firstUserUseAmount = 50L;
+        final long firstUserChargeAmount = 100L;
+
+        final long secondUserUseAmount = 10L;
+        final long secondUserChargeAmount = 30L;
+
+        final int operationCount = 3;
+        List<Runnable> operations = new ArrayList<>();
+
+        for (int i = 0; i < operationCount; i++) {
+            operations.add(() -> pointService.chargePoint(firstUserId, firstUserChargeAmount));
+            operations.add(() -> pointService.chargePoint(secondUserId, secondUserChargeAmount));
+            operations.add(() -> pointService.usePoint(firstUserId, firstUserUseAmount));
+            operations.add(() -> pointService.usePoint(secondUserId, secondUserUseAmount));
+        }
+
+        Collections.shuffle(operations);
+
+        // when
+        final int totalOperations = operations.size();
+        final ExecutorService executorService = Executors.newFixedThreadPool(totalOperations);
+        final CountDownLatch countDownLatch = new CountDownLatch(totalOperations);
+
+        for (Runnable operation : operations) {
+            executorService.submit(() -> {
+                operation.run();
+                countDownLatch.countDown();
+            });
+        }
+
+        countDownLatch.await();
+        executorService.shutdown();
+
+        // then
+        UserPoint firstUserPoint = pointService.getPoint(firstUserId);
+        UserPoint secondUserPoint = pointService.getPoint(secondUserId);
+
+        assertEquals(firstUserPoint.point(),
+                (firstUserChargeAmount * operationCount) - (firstUserUseAmount * operationCount));
+        assertEquals(secondUserPoint.point(),
+                (secondUserChargeAmount * operationCount) - (secondUserUseAmount * operationCount));
 
         emptyUserPoint(firstUserId, firstUserPoint.point());
         emptyUserPoint(secondUserId, secondUserPoint.point());
