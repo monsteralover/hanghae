@@ -102,6 +102,56 @@ class PointTest {
         emptyUserPoint(secondUserId, secondUserPoint.point());
     }
 
+    @DisplayName("동시성 환경에서 2명이 10개의 쓰레드를 통해 포인트를 사용했을 때 누락 없이 사용이 완료된다.")
+    @Test
+    void testConcurrentUsePointMultipleUsers() throws InterruptedException {
+        final long firstUserId = 1L;
+        final long secondUserId = 2L;
+        final int consumeTimes = 5;
+        final long firstUserUseAmount = 100L;
+        final long secondUserUseAmount = 200L;
+
+        // given
+        final List<Map<Long, Long>> userPointConsume = IntStream.range(0, consumeTimes)
+                .boxed()
+                .flatMap(i -> Stream.of(
+                        Map.of(firstUserId, firstUserUseAmount), Map.of(secondUserId, secondUserUseAmount)
+                )).toList();
+
+        int threadCount = userPointConsume.size();
+        pointService.chargePoint(firstUserId, 700L);
+        pointService.chargePoint(secondUserId, 1500L);
+
+        //when
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        for (int i = 0; i < threadCount; i++) {
+            final int finalI = i;
+            executorService.submit(() -> {
+                try {
+                    final Map<Long, Long> userCharge = userPointConsume.get(finalI);
+                    final Long userId = userCharge.keySet().iterator().next();
+                    final Long amount = userCharge.get(userId);
+                    pointService.usePoint(userId, amount);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+        latch.await();
+        executorService.shutdown();
+
+        // Then
+        UserPoint firstUserPoint = pointService.getPoint(firstUserId);
+        UserPoint secondUserPoint = pointService.getPoint(secondUserId);
+        assertEquals(firstUserPoint.point(), 700L - (firstUserUseAmount * consumeTimes));
+        assertEquals(secondUserPoint.point(), 1500L - (secondUserUseAmount * consumeTimes));
+
+        emptyUserPoint(firstUserId, firstUserPoint.point());
+        emptyUserPoint(secondUserId, secondUserPoint.point());
+    }
+
     private void emptyUserPoint(Long userId, Long remainingPoint) {
         pointService.usePoint(userId, remainingPoint);
     }

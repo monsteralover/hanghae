@@ -28,17 +28,21 @@ public class PointService {
         }
     }
 
-    public UserPoint usePoint(final long userId, final long amount) {
-        final UserPoint selectedUserPoint = userPointTable.selectById(userId);
-        final long existingPoint = selectedUserPoint.point();
-        if (amount > existingPoint) {
-            throw new PointInsufficientException("포인트가 부족합니다.");
-        }
+    public synchronized UserPoint usePoint(final long userId, final long amount) {
 
-        final long balance = existingPoint - amount;
-        final UserPoint userPoint = userPointTable.insertOrUpdate(userId, balance);
-        pointHistoryTable.insert(userId, amount, TransactionType.USE, userPoint.updateMillis());
-        return userPoint;
+        Object lock = locks.computeIfAbsent(userId, k -> new Object());
+        synchronized (lock) {
+            final UserPoint selectedUserPoint = userPointTable.selectById(userId);
+            final long existingPoint = selectedUserPoint.point();
+            if (amount > existingPoint) {
+                throw new PointInsufficientException("포인트가 부족합니다.");
+            }
+
+            final long balance = existingPoint - amount;
+            final UserPoint userPoint = userPointTable.insertOrUpdate(userId, balance);
+            pointHistoryTable.insert(userId, amount, TransactionType.USE, userPoint.updateMillis());
+            return userPoint;
+        }
     }
 
     public UserPoint getPoint(final long user_id) {
