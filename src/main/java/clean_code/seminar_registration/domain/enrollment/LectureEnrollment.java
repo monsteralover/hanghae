@@ -3,6 +3,7 @@ package clean_code.seminar_registration.domain.enrollment;
 import clean_code.seminar_registration.domain.BaseEntity;
 import clean_code.seminar_registration.exception.DuplicateUserRegistrationException;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -28,6 +29,12 @@ public class LectureEnrollment extends BaseEntity {
 
     public LectureEnrollment() {
 
+    }
+
+    public LectureEnrollment(final Long id, final Long userId, final Long lectureId) {
+        this.id = id;
+        this.userId = userId;
+        this.lectureId = lectureId;
     }
 
     public static LectureEnrollment create(final Long userId, final Long lectureId) {

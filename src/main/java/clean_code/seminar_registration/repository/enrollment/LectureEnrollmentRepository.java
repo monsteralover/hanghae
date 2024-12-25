@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface LectureEnrollmentRepository {
 
-    Long countAllByLectureId(Long lectureId, Long userId);
+    Long countAllByLectureId(Long lectureId);
 
     List<UserLectureEnrollmentsDto> getUserEnrollments(Long userId);
 

@@ -19,5 +19,5 @@ public interface LectureEnrollmentJpaRepository extends JpaRepository<LectureEnr
 
     Optional<LectureEnrollment> findByLectureIdAndUserId(Long lectureId, Long userId);
 
-    Long countAllByLectureIdAndUserId(Long lectureId, Long userId);
+    Long countAllByLectureId(Long lectureId);
 }

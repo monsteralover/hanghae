@@ -33,7 +33,7 @@ public class LectureEnrollmentRepositoryImpl implements LectureEnrollmentReposit
     }
 
     @Override
-    public Long countAllByLectureId(final Long lectureId, final Long userId) {
-        return lectureEnrollmentJpaRepository.countAllByLectureIdAndUserId(lectureId, userId);
+    public Long countAllByLectureId(final Long lectureId) {
+        return lectureEnrollmentJpaRepository.countAllByLectureId(lectureId);
     }
 }

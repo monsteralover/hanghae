@@ -43,7 +43,7 @@ public class LectureEnrollmentService {
         final LectureEnrollment savedEnrollment = lectureEnrollmentRepository.enroll(LectureEnrollment.create(userId,
                 lectureId));
 
-        final Long usersInLecture = lectureEnrollmentRepository.countAllByLectureId(lectureId, userId);
+        final Long usersInLecture = lectureEnrollmentRepository.countAllByLectureId(lectureId);
         if (savedEnrollment.isMaxUserSizeForLecture(usersInLecture)) {
             lectureRepository.save(lecture.updateEnrollAnAvailable(lectureId));
         }
