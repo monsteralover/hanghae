@@ -8,4 +8,7 @@ import java.util.List;
 public interface LectureRepository {
     List<Lecture> getLecturesByDate(LocalDate lectureTime);
 
+    Lecture findById(Long lectureId);
+
+    void save(Lecture updateEnrollAnAvailable);
 }

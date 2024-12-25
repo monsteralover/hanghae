@@ -4,10 +4,7 @@ import clean_code.seminar_registration.ApiResponse;
 import clean_code.seminar_registration.service.enrollment.LectureEnrollmentService;
 import clean_code.seminar_registration.service.enrollment.response.SearchedLectureEnrollmentResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,6 +16,12 @@ public class LectureEnrollmentController {
     @GetMapping("/{userId}")
     public ApiResponse<SearchedLectureEnrollmentResponse> getUserEnrollments(@PathVariable Long userId) {
         return ApiResponse.ok(lectureEnrollmentService.getUserEnrollments(userId));
+    }
+
+    @PostMapping("/{userId}")
+    public ApiResponse<Long> enrollLecture(@PathVariable Long userId, @RequestParam Long lectureId) {
+        Long id = lectureEnrollmentService.enrollLecture(userId, lectureId);
+        return ApiResponse.ok(id);
     }
 
 }

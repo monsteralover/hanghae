@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface LectureEnrollmentJpaRepository extends JpaRepository<LectureEnrollment, Long> {
 
@@ -16,4 +17,7 @@ public interface LectureEnrollmentJpaRepository extends JpaRepository<LectureEnr
             "WHERE le.userId = :userId")
     List<UserLectureEnrollmentsDto> getEnrollmentsByUserId(Long userId);
 
+    Optional<LectureEnrollment> findByLectureIdAndUserId(Long lectureId, Long userId);
+
+    Long countAllByLectureIdAndUserId(Long lectureId, Long userId);
 }
