@@ -1,8 +1,8 @@
 package clean_code.seminar_registration.controller;
 
 import clean_code.seminar_registration.ApiResponse;
-import clean_code.seminar_registration.service.LectureService;
-import clean_code.seminar_registration.service.response.SearchLecturesResponse;
+import clean_code.seminar_registration.service.lecture.LectureService;
+import clean_code.seminar_registration.service.lecture.response.SearchLecturesResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

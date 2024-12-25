@@ -22,7 +22,7 @@ public class LectureService {
         List<clean_code.seminar_registration.domain.lecture.Lecture> lectures =
                 lectureRepository.getLecturesByDate(lectureTime);
         return SearchLecturesResponse.builder()
-                .lectures(lectures.stream().map(SearchedLecture::of).toList())
+                .lectures(lectures.stream().map(SearchedLecture::from).toList())
                 .build();
     }
 }

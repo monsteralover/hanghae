@@ -22,7 +22,7 @@ public class SearchedLecture {
         this.available = available;
     }
 
-    public static SearchedLecture of(Lecture lecture) {
+    public static SearchedLecture from(Lecture lecture) {
         return SearchedLecture.builder()
                 .lectureId(lecture.getId())
                 .lectureName(lecture.getLectureName())
