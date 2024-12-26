@@ -63,7 +63,7 @@ class LectureEnrollmentTest {
                 .available(false)
                 .build();
 
-        when(lectureRepository.findById(1L)).thenReturn(lecture);
+        when(lectureRepository.findByIdWithPessimisticLock(1L)).thenReturn(lecture);
 
         // when
         Throwable throwable = catchThrowable(() ->
@@ -72,7 +72,7 @@ class LectureEnrollmentTest {
         // then
         assertThat(throwable)
                 .isInstanceOf(MaxEnrollmentExceededException.class);
-        verify(lectureRepository).findById(1L);
+        verify(lectureRepository).findByIdWithPessimisticLock(1L);
     }
 
     @DisplayName("같은 사용자는 같은 강의에 대해 1번 이상 등록하려고 하면 DuplicateUserRegistrationException이 발생한다.")
@@ -90,7 +90,7 @@ class LectureEnrollmentTest {
                 .available(true)
                 .build();
 
-        when(lectureRepository.findById(lectureId)).thenReturn(lecture);
+        when(lectureRepository.findByIdWithPessimisticLock(lectureId)).thenReturn(lecture);
         when(lectureEnrollmentRepository.existByLectureIdAndUserId(lectureId, userId)).thenReturn(true);
 
         // when
@@ -100,7 +100,7 @@ class LectureEnrollmentTest {
         // then
         assertThat(throwable)
                 .isInstanceOf(DuplicateUserRegistrationException.class);
-        verify(lectureRepository).findById(userId);
+        verify(lectureRepository).findByIdWithPessimisticLock(userId);
         verify(lectureEnrollmentRepository).existByLectureIdAndUserId(lectureId, userId);
 
     }
@@ -123,7 +123,7 @@ class LectureEnrollmentTest {
 
         LectureEnrollment savedEnrollment = new LectureEnrollment(lectureEnrollmentId, userId, lectureId);
 
-        when(lectureRepository.findById(lectureId)).thenReturn(lecture);
+        when(lectureRepository.findByIdWithPessimisticLock(lectureId)).thenReturn(lecture);
         when(lectureEnrollmentRepository.existByLectureIdAndUserId(lectureId, userId)).thenReturn(false);
         when(lectureEnrollmentRepository.enroll(any(LectureEnrollment.class))).thenReturn(savedEnrollment);
         when(lectureEnrollmentRepository.countAllByLectureId(lectureId)).thenReturn(30L);
@@ -133,7 +133,7 @@ class LectureEnrollmentTest {
 
         // then
         assertThat(savedEnrollment.getId()).isEqualTo(lectureEnrollmentId);
-        verify(lectureRepository).findById(lectureId);
+        verify(lectureRepository).findByIdWithPessimisticLock(lectureId);
         verify(lectureEnrollmentRepository).existByLectureIdAndUserId(lectureId, userId);
         verify(lectureEnrollmentRepository).enroll(any(LectureEnrollment.class));
         verify(lectureEnrollmentRepository).countAllByLectureId(lectureId);
@@ -158,7 +158,7 @@ class LectureEnrollmentTest {
 
         LectureEnrollment savedEnrollment = new LectureEnrollment(lectureEnrollmentId, userId, lectureId);
 
-        when(lectureRepository.findById(lectureId)).thenReturn(lecture);
+        when(lectureRepository.findByIdWithPessimisticLock(lectureId)).thenReturn(lecture);
         when(lectureEnrollmentRepository.existByLectureIdAndUserId(lectureId, userId)).thenReturn(false);
         when(lectureEnrollmentRepository.enroll(any(LectureEnrollment.class))).thenReturn(savedEnrollment);
         when(lectureEnrollmentRepository.countAllByLectureId(lectureId)).thenReturn(10L);
@@ -168,7 +168,7 @@ class LectureEnrollmentTest {
 
         // then
         assertThat(savedEnrollment.getId()).isEqualTo(lectureEnrollmentId);
-        verify(lectureRepository).findById(lectureId);
+        verify(lectureRepository).findByIdWithPessimisticLock(lectureId);
         verify(lectureEnrollmentRepository).existByLectureIdAndUserId(lectureId, userId);
         verify(lectureEnrollmentRepository).enroll(any(LectureEnrollment.class));
         verify(lectureEnrollmentRepository).countAllByLectureId(lectureId);
