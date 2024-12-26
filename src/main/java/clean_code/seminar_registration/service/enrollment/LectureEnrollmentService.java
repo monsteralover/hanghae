@@ -2,6 +2,7 @@ package clean_code.seminar_registration.service.enrollment;
 
 import clean_code.seminar_registration.domain.enrollment.LectureEnrollment;
 import clean_code.seminar_registration.domain.lecture.Lecture;
+import clean_code.seminar_registration.exception.DuplicateUserRegistrationException;
 import clean_code.seminar_registration.repository.enrollment.LectureEnrollmentRepository;
 import clean_code.seminar_registration.repository.enrollment.dto.UserLectureEnrollmentsDto;
 import clean_code.seminar_registration.repository.lecture.LectureRepository;
@@ -36,8 +37,9 @@ public class LectureEnrollmentService {
         final Lecture lecture = lectureRepository.findById(lectureId);
         lecture.validateIfLectureIsAvailable(lecture.isAvailable());
 
-        final boolean doesExist = lectureEnrollmentRepository.existByLectureIdAndUserId(lectureId, userId);
-        LectureEnrollment.validateUserEnrollDuplication(doesExist);
+        if (lectureEnrollmentRepository.existByLectureIdAndUserId(lectureId, userId)) {
+            throw new DuplicateUserRegistrationException("이미 등록된 사용자입니다.");
+        }
 
         //등록
         final LectureEnrollment savedEnrollment = lectureEnrollmentRepository.enroll(LectureEnrollment.create(userId,
