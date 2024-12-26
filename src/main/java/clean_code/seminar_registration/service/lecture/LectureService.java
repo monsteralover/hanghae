@@ -1,5 +1,6 @@
 package clean_code.seminar_registration.service.lecture;
 
+import clean_code.seminar_registration.domain.lecture.Lecture;
 import clean_code.seminar_registration.repository.lecture.LectureRepository;
 import clean_code.seminar_registration.service.lecture.response.SearchLecturesResponse;
 import clean_code.seminar_registration.service.lecture.response.SearchedLecture;
@@ -16,10 +17,10 @@ public class LectureService {
     private final LectureValidator lectureValidator;
     private final LectureRepository lectureRepository;
 
-    public SearchLecturesResponse getLecturesByDate(final String time) {
-        LocalDate lectureTime = lectureValidator.validateLectureTime(time);
+    public SearchLecturesResponse getLecturesByDate(final String date) {
+        LocalDate lectureTime = lectureValidator.validateLectureDate(date);
 
-        List<clean_code.seminar_registration.domain.lecture.Lecture> lectures =
+        List<Lecture> lectures =
                 lectureRepository.getLecturesByDate(lectureTime);
         return SearchLecturesResponse.builder()
                 .lectures(lectures.stream().map(SearchedLecture::from).toList())
