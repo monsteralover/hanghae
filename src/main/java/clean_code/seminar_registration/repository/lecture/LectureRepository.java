@@ -10,5 +10,7 @@ public interface LectureRepository {
 
     Lecture findById(Long lectureId);
 
-    void save(Lecture updateEnrollAnAvailable);
+    Lecture save(Lecture updateEnrollAnAvailable);
+
+    Lecture findByIdWithPessimisticLock(Long lectureId);
 }

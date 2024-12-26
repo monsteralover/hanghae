@@ -34,7 +34,7 @@ public class LectureEnrollmentService {
     @Transactional
     public Long enrollLecture(final Long userId, final Long lectureId) {
 
-        final Lecture lecture = lectureRepository.findById(lectureId);
+        final Lecture lecture = lectureRepository.findByIdWithPessimisticLock(lectureId);
         lecture.validateIfLectureIsAvailable(lecture.isAvailable());
 
         if (lectureEnrollmentRepository.existByLectureIdAndUserId(lectureId, userId)) {

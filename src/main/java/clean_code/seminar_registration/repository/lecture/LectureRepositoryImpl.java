@@ -27,7 +27,15 @@ public class LectureRepositoryImpl implements LectureRepository {
     }
 
     @Override
-    public void save(final Lecture lecture) {
+    public Lecture save(final Lecture lecture) {
         lectureJpaRepository.save(lecture);
+        return lecture;
     }
+
+    @Override
+    public Lecture findByIdWithPessimisticLock(final Long lectureId) {
+        return lectureJpaRepository.findByIdWithPessimisticLock(lectureId);
+    }
+
+
 }

@@ -14,5 +14,5 @@ public interface LectureEnrollmentRepository {
     boolean existByLectureIdAndUserId(Long lectureId, Long userId);
 
     LectureEnrollment enroll(LectureEnrollment lectureEnrollment);
-
+    
 }
